@@ -4,7 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import LoginPage from '../assets/Illustration.jpg';
 import Textbox from '../components/Textbox';
 import Button from '../components/Button';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLoginMutation } from '../redux/slices/api/authApiSlice';
+import { toast } from 'sonner';
+import { setCreadentials} from '../redux/slices/authSlice';
+import Loading from '../components/Loader';
 
 const Login = () => {
   const {user} = useSelector((state)=> state.auth);
@@ -13,9 +17,18 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-
+    const dispatch = useDispatch();
+   const [login ,{isloading} ] = useLoginMutation();
   const submitHandler = async (data) => {
-    console.log('submit');
+    try{
+      const result = await login(data).unwrap();
+      dispatch(setCreadentials(result));
+      navigate("/");
+    }catch(error){
+        console.log(error);
+        toast.error(error?.data?.message || error.message);
+    }
+    
   };
 
   const navigate = useNavigate();
@@ -75,11 +88,11 @@ const Login = () => {
                 </div>
               </div>
 
-              <Button
+              {isloading ? <Loading/>:<Button
                 type='submit'
                 className='w-full rounded-lg bg-yellow-300 text-white py-2 px-4 hover'
                 label='Submit'
-              />
+              />}
             </div>
           </form>
         </div>
